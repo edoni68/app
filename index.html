@@ -74,8 +74,13 @@ function save() {
 }
 
 function stopAll() {
-  projects.forEach(p => {
-    if (p.running) stopTimer(projects.indexOf(p));
+  projects.forEach((p, i) => {
+    if (p.running) {
+      addTime(p);
+      p.running = false;
+      p.paused = false;
+      p.startTime = null;
+    }
   });
 }
 
