@@ -1,48 +1,52 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Zeiterfassung</title>
+<meta charset="UTF-8">
+<title>Zeiterfassung Pro</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: -apple-system;
-      background: #f2f2f7;
-      padding: 20px;
-      margin: 0;
-    }
+<style>
+body {
+  font-family: -apple-system;
+  background: #f2f2f7;
+  margin: 0;
+  padding: 20px;
+}
 
-    h1 {
-      text-align: center;
-    }
+h1 { text-align: center; }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      border: none;
-    }
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+}
 
-    button {
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      margin: 5px;
-    }
+button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  margin: 3px;
+}
 
-    .start { background: #34c759; color: white; }
-    .stop { background: #ff3b30; color: white; }
+.start { background: #34c759; color: white; }
+.stop { background: #ff3b30; color: white; }
+.pause { background: #ff9500; color: white; }
 
-    .project {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 10px;
-    }
-  </style>
+.project {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.small {
+  font-size: 12px;
+  color: gray;
+}
+</style>
 </head>
 
 <body>
@@ -54,84 +58,118 @@
 
 <div id="projects"></div>
 
+<h2>📅 Heute</h2>
+<div id="today"></div>
+
 <script>
-  let projects = JSON.parse(localStorage.getItem("projects")) || [];
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-  function save() {
-    localStorage.setItem("projects", JSON.stringify(projects));
-    render();
-  }
+function todayKey() {
+  return new Date().toISOString().split("T")[0];
+}
 
-  function addProject() {
-    const input = document.getElementById("projectInput");
-    if (!input.value) return;
-
-    projects.push({
-      name: input.value,
-      total: 0,
-      running: false,
-      startTime: null
-    });
-
-    input.value = "";
-    save();
-  }
-
-  function startTimer(index) {
-    const p = projects[index];
-    if (p.running) return;
-
-    p.running = true;
-    p.startTime = Date.now();
-    save();
-  }
-
-  function stopTimer(index) {
-    const p = projects[index];
-    if (!p.running) return;
-
-    p.running = false;
-    p.total += Date.now() - p.startTime;
-    p.startTime = null;
-    save();
-  }
-
-  function format(ms) {
-    let sec = Math.floor(ms / 1000);
-    let min = Math.floor(sec / 60);
-    let h = Math.floor(min / 60);
-
-    return `${h}h ${min % 60}m ${sec % 60}s`;
-  }
-
-  function render() {
-    const container = document.getElementById("projects");
-    container.innerHTML = "";
-
-    projects.forEach((p, i) => {
-      let current = p.total;
-
-      if (p.running) {
-        current += Date.now() - p.startTime;
-      }
-
-      const div = document.createElement("div");
-      div.className = "project";
-
-      div.innerHTML = `
-        <strong>${p.name}</strong><br>
-        ⏱ ${format(current)}<br>
-        <button class="start" onclick="startTimer(${i})">Start</button>
-        <button class="stop" onclick="stopTimer(${i})">Stop</button>
-      `;
-
-      container.appendChild(div);
-    });
-  }
-
-  setInterval(render, 1000);
+function save() {
+  localStorage.setItem("projects", JSON.stringify(projects));
   render();
-</script>
+}
 
-</body>
-</html>
+function stopAll() {
+  projects.forEach(p => {
+    if (p.running) stopTimer(projects.indexOf(p));
+  });
+}
+
+function addProject() {
+  let name = document.getElementById("projectInput").value;
+  if (!name) return;
+
+  projects.push({
+    name,
+    timeByDay: {},
+    running: false,
+    paused: false,
+    startTime: null
+  });
+
+  document.getElementById("projectInput").value = "";
+  save();
+}
+
+function startTimer(i) {
+  stopAll();
+
+  let p = projects[i];
+  p.running = true;
+  p.paused = false;
+  p.startTime = Date.now();
+
+  save();
+}
+
+function pauseTimer(i) {
+  let p = projects[i];
+  if (!p.running) return;
+
+  addTime(p);
+  p.running = false;
+  p.paused = true;
+
+  save();
+}
+
+function stopTimer(i) {
+  let p = projects[i];
+  if (!p.running && !p.paused) return;
+
+  if (p.running) addTime(p);
+
+  p.running = false;
+  p.paused = false;
+  p.startTime = null;
+
+  save();
+}
+
+function addTime(p) {
+  let day = todayKey();
+  if (!p.timeByDay[day]) p.timeByDay[day] = 0;
+
+  p.timeByDay[day] += Date.now() - p.startTime;
+}
+
+function deleteProject(i) {
+  if (!confirm("Projekt wirklich löschen?")) return;
+  projects.splice(i, 1);
+  save();
+}
+
+function editProject(i) {
+  let newName = prompt("Neuer Name:", projects[i].name);
+  if (newName) {
+    projects[i].name = newName;
+    save();
+  }
+}
+
+function format(ms) {
+  let sec = Math.floor(ms / 1000);
+  let min = Math.floor(sec / 60);
+  let h = Math.floor(min / 60);
+  return `${h}h ${min % 60}m`;
+}
+
+function getTodayTotal(p) {
+  let t = p.timeByDay[todayKey()] || 0;
+
+  if (p.running) {
+    t += Date.now() - p.startTime;
+  }
+
+  return t;
+}
+
+function render() {
+  let container = document.getElementById("projects");
+  let todayBox = document.getElementById("today");
+
+  container.innerHTML = "";
