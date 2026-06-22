@@ -183,3 +183,36 @@ function render() {
   let todayBox = document.getElementById("today");
 
   container.innerHTML = "";
+  todayBox.innerHTML = "";
+
+  let totalToday = 0;
+
+  projects.forEach((p, i) => {
+    let today = getTodayTotal(p);
+    totalToday += today;
+
+    let div = document.createElement("div");
+    div.className = "project";
+
+    div.innerHTML = `
+      <strong>${p.name}</strong><br>
+      Heute: ${format(today)}<br>
+      <button class="start" onclick="startTimer(${i})">Start</button>
+      <button class="pause" onclick="pauseTimer(${i})">Pause</button>
+      <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
+      <button onclick="editProject(${i})">âï¸</button>
+      <button onclick="deleteProject(${i})">ðï¸</button>
+    `;
+
+    container.appendChild(div);
+
+    todayBox.innerHTML += `
+      ${p.name}: ${format(today)}<br>
+    `;
+  });
+
+  todayBox.innerHTML += `<hr><strong>Gesamt: ${format(totalToday)}</strong>`;
+}
+
+setInterval(render, 1000);
+render();
