@@ -2,21 +2,16 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Meine Notizen</title>
+  <title>Zeiterfassung</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0a84ff">
-
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.png">
 
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont;
-      margin: 0;
-      padding: 20px;
+      font-family: -apple-system;
       background: #f2f2f7;
+      padding: 20px;
+      margin: 0;
     }
 
     h1 {
@@ -26,94 +21,116 @@
     input {
       width: 100%;
       padding: 12px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: none;
       margin-bottom: 10px;
+      border-radius: 10px;
+      border: none;
     }
 
     button {
-      width: 100%;
-      padding: 12px;
-      background: #0a84ff;
-      color: white;
+      padding: 10px;
+      border-radius: 10px;
       border: none;
-      border-radius: 12px;
-      font-size: 16px;
+      margin: 5px;
     }
 
-    ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 20px;
-    }
+    .start { background: #34c759; color: white; }
+    .stop { background: #ff3b30; color: white; }
 
-    li {
+    .project {
       background: white;
-      margin-bottom: 8px;
-      padding: 12px;
+      padding: 15px;
       border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .delete {
-      background: transparent;
-      color: red;
-      border: none;
-      font-size: 16px;
+      margin-top: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>ð Notizen</h1>
+<h1>⏱️ Zeiterfassung</h1>
 
-<input id="noteInput" placeholder="Neue Notiz..." />
-<button onclick="addNote()">Speichern</button>
+<input id="projectInput" placeholder="Projektname..." />
+<button onclick="addProject()">Projekt hinzufügen</button>
 
-<ul id="notesList"></ul>
+<div id="projects"></div>
 
 <script>
-  let notes = JSON.parse(localStorage.getItem("notes")) || [];
+  let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-  function renderNotes() {
-    const list = document.getElementById("notesList");
-    list.innerHTML = "";
+  function save() {
+    localStorage.setItem("projects", JSON.stringify(projects));
+    render();
+  }
 
-    notes.forEach((note, index) => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        ${note}
-        <button class="delete" onclick="deleteNote(${index})">â</button>
+  function addProject() {
+    const input = document.getElementById("projectInput");
+    if (!input.value) return;
+
+    projects.push({
+      name: input.value,
+      total: 0,
+      running: false,
+      startTime: null
+    });
+
+    input.value = "";
+    save();
+  }
+
+  function startTimer(index) {
+    const p = projects[index];
+    if (p.running) return;
+
+    p.running = true;
+    p.startTime = Date.now();
+    save();
+  }
+
+  function stopTimer(index) {
+    const p = projects[index];
+    if (!p.running) return;
+
+    p.running = false;
+    p.total += Date.now() - p.startTime;
+    p.startTime = null;
+    save();
+  }
+
+  function format(ms) {
+    let sec = Math.floor(ms / 1000);
+    let min = Math.floor(sec / 60);
+    let h = Math.floor(min / 60);
+
+    return `${h}h ${min % 60}m ${sec % 60}s`;
+  }
+
+  function render() {
+    const container = document.getElementById("projects");
+    container.innerHTML = "";
+
+    projects.forEach((p, i) => {
+      let current = p.total;
+
+      if (p.running) {
+        current += Date.now() - p.startTime;
+      }
+
+      const div = document.createElement("div");
+      div.className = "project";
+
+      div.innerHTML = `
+        <strong>${p.name}</strong><br>
+        ⏱ ${format(current)}<br>
+        <button class="start" onclick="startTimer(${i})">Start</button>
+        <button class="stop" onclick="stopTimer(${i})">Stop</button>
       `;
-      list.appendChild(li);
+
+      container.appendChild(div);
     });
   }
 
-  function addNote() {
-    const input = document.getElementById("noteInput");
-    if (!input.value) return;
-
-    notes.push(input.value);
-    localStorage.setItem("notes", JSON.stringify(notes));
-    input.value = "";
-    renderNotes();
-  }
-
-  function deleteNote(i) {
-    notes.splice(i, 1);
-    localStorage.setItem("notes", JSON.stringify(notes));
-    renderNotes();
-  }
-
-  renderNotes();
-
-  // Service Worker registrieren (Offline)
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
+  setInterval(render, 1000);
+  render();
 </script>
 
 </body>
