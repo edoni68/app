@@ -326,7 +326,7 @@ let selectedClass = activeProject === i ? "selected" : "";
 
 let sessionsHtml = "";
 
-p.sessions.slice(-3).forEach(s => {
+p.sessions.slice(-10).forEach(s => {
   sessionsHtml += `
     <div class="session">
       ${formatTime(s.start)} – ${formatTime(s.end)}
