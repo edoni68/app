@@ -83,7 +83,15 @@ button {
 <body>
 
 <h1>⏱️ Zeiterfassung</h1>
-
+<div id="dashboard" style="
+  background:white;
+  padding:15px;
+  border-radius:16px;
+  margin-bottom:15px;
+  text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+"></div>
+  
 <input id="projectInput" placeholder="Projektname..." />
 <button onclick="addProject()">Projekt hinzufügen</button>
 
@@ -301,6 +309,7 @@ function getTotal(p) {
 // ✅ Render
 
 function render() {
+  let dashboard = document.getElementById("dashboard");
   let container = document.getElementById("projects");
   let workInfo = document.getElementById("workInfo");
 
@@ -358,6 +367,34 @@ div.className = `project ${runningClass} ${selectedClass}`;
   }
 
   workInfo.innerHTML = `Gesamt Arbeitszeit: ${format(total)}`;
+  
+  let activeName = "Kein Projekt gewählt";
+  let status = "⏸️ Pause";
+  let workTime = work.total;
+  
+  // aktuelles Projekt finden
+  if (activeProject !== null && projects[activeProject]) {
+    activeName = projects[activeProject].name;
+  }
+  
+  // Status bestimmen
+  if (work.running) {
+    status = "🟢 läuft";
+    workTime += Date.now() - work.start;
+  } else if (work.paused) {
+    status = "⏸️ pausiert";
+  }
+  
+  // Dashboard anzeigen
+  dashboard.innerHTML = `
+    <div style="font-size:18px;"><strong>🎯 ${activeName}</strong></div>
+    <div style="margin-top:5px;">${status}</div>
+    <div style="font-size:22px; margin-top:8px;">
+      ${format(workTime)}
+    </div>
+  `;
+
+  
 }
 
 // ✅ Start
