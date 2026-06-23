@@ -13,35 +13,70 @@
   
 <style>
 body {
-  font-family: -apple-system;
+  font-family: -apple-system, BlinkMacSystemFont;
   background: #f2f2f7;
-  padding: 20px;
+  margin: 0;
+  padding: 15px;
 }
 
+/* Überschriften */
+h1, h2 {
+  text-align: center;
+}
+
+/* Input */
+input {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+/* Buttons global */
+button {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+}
+
+/* große Hauptbuttons */
+.big-btn {
+  width: 100%;
+  margin-top: 5px;
+}
+
+/* Projektkarten */
 .project {
   background: white;
   padding: 15px;
-  border-radius: 12px;
-  margin-top: 10px;
+  border-radius: 16px;
+  margin-top: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-button {
-  margin: 3px;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-}
-
+/* Button Farben */
 .start { background: #34c759; color: white; }
 .stop { background: #ff3b30; color: white; }
-.active {
-  outline: 3px solid red; /* läuft */
-}
-.selected {
-  outline: 3px solid blue; /* ausgewählt */
+.select { background: #0a84ff; color: white; }
+
+/* Status */
+.running {
+  border: 2px solid #34c759;
 }
 
-.small { font-size: 12px; color: gray; }
+.selected {
+  border: 2px solid #0a84ff;
+}
+
+/* Sessions */
+.session {
+  font-size: 13px;
+  color: gray;
+  padding-left: 5px;
+}
 </style>
 </head>
 
@@ -55,11 +90,13 @@ button {
 <div id="projects"></div>
 
 <h2>🧑‍💻 Arbeitsmodus</h2>
-<button onclick="startWork()" class="start">Start Arbeit</button>
-<button onclick="pauseWork()">Pause</button>
-<button onclick="stopWork()" class="stop">Feierabend</button>
 
-<div id="workInfo"></div>
+<button onclick="startWork()" class="start big-btn">▶️ Start Arbeit</button>
+<button onclick="pauseWork()" class="big-btn">⏸ Pause</button>
+<button onclick="stopWork()" class="stop big-btn">⏹ Feierabend</button>
+
+<div id="workInfo" style="text-align:center; margin-top:10px;"></div>
+
 
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
@@ -283,28 +320,48 @@ function render() {
       `;
     });
 
-let runningClass = p.running ? "active" : "";
+let runningClass = p.running ? "running" : "";
 let selectedClass = activeProject === i ? "selected" : "";
 
-    
-let selected = activeProject === i ? "active" : "";
+let sessionsHtml = "";
+
+p.sessions.slice(-3).forEach(s => {
+  sessionsHtml += `
+    <div class="session">
+      ${formatTime(s.start)} – ${formatTime(s.end)}
+    </div>
+  `;
+});
 
 div.innerHTML = `
-  <strong>${p.name}</strong><br>
-  Gesamt: ${format(getTotal(p))}<br>
+  <div class="project ${runningClass} ${selectedClass}">
 
-  <button onclick="selectProject(${i})" class="${selected}">
-    🎯 auswählen
-  </button>
+    <strong style="font-size:18px">${p.name}</strong><br>
+    <div style="margin:5px 0">
+      ⏱ ${format(getTotal(p))}
+    </div>
 
-<button class="start ${runningClass}">Start</button>
-<button class="${selectedClass}">🎯</button>
+    <button class="select big-btn" onclick="selectProject(${i})">
+      ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
+    </button>
 
-      ${sessionsHtml}
+    <button class="start big-btn" onclick="startTimer(${i})">
+      ▶️ Start
+    </button>
 
+    <button class="stop big-btn" onclick="stopTimer(${i})">
+      ⏹ Stop
+    </button>
+
+    ${sessionsHtml}
+
+    <div style="margin-top:10px;">
       <button onclick="editProject(${i})">✏️</button>
       <button onclick="deleteProject(${i})">🗑️</button>
-    `;
+    </div>
+
+  </div>
+`;
 
     container.appendChild(div);
   });
