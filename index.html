@@ -308,7 +308,7 @@ function render() {
 
   projects.forEach((p, i) => {
     let div = document.createElement("div");
-    div.className = "project";
+
 
     let sessionsHtml = "";
 
@@ -334,35 +334,31 @@ p.sessions.slice(-3).forEach(s => {
 });
 
 div.innerHTML = `
-  <div class="project ${runningClass} ${selectedClass}">
+  <strong style="font-size:18px">${p.name}</strong><br>
+  <div style="margin:5px 0">
+    ⏱ ${format(getTotal(p))}
+  </div>
 
-    <strong style="font-size:18px">${p.name}</strong><br>
-    <div style="margin:5px 0">
-      ⏱ ${format(getTotal(p))}
-    </div>
+  <button class="select big-btn" onclick="selectProject(${i})">
+    ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
+  </button>
 
-    <button class="select big-btn" onclick="selectProject(${i})">
-      ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
-    </button>
+  <button class="start big-btn" onclick="startTimer(${i})">
+    ▶️ Start
+  </button>
 
-    <button class="start big-btn" onclick="startTimer(${i})">
-      ▶️ Start
-    </button>
+  <button class="stop big-btn" onclick="stopTimer(${i})">
+    ⏹ Stop
+  </button>
 
-    <button class="stop big-btn" onclick="stopTimer(${i})">
-      ⏹ Stop
-    </button>
+  ${sessionsHtml}
 
-    ${sessionsHtml}
-
-    <div style="margin-top:10px;">
-      <button onclick="editProject(${i})">✏️</button>
-      <button onclick="deleteProject(${i})">🗑️</button>
-    </div>
-
+  <div style="margin-top:10px;">
+    <button onclick="editProject(${i})">✏️</button>
+    <button onclick="deleteProject(${i})">🗑️</button>
   </div>
 `;
-
+div.className = `project ${runningClass} ${selectedClass}`;
     container.appendChild(div);
   });
 
