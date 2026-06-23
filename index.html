@@ -57,15 +57,31 @@ button {
 <div id="workInfo"></div>
 
 <script>
-localStorage.clear();
-let projects = JSON.parse(localStorage.getItem("projects")) || [];
-let work = JSON.parse(localStorage.getItem("work")) || {
-  running: false,
-  paused: false,
-  start: null,
-  total: 0
-};
 
+let projects;
+try {
+  projects = JSON.parse(localStorage.getItem("projects")) || [];
+} catch (e) {
+  projects = [];
+}
+  
+let work;
+try {
+  work = JSON.parse(localStorage.getItem("work")) || {
+    running: false,
+    paused: false,
+    start: null,
+    total: 0
+  };
+} catch (e) {
+  work = {
+    running: false,
+    paused: false,
+    start: null,
+    total: 0
+  };
+}
+  
 function save() {
   localStorage.setItem("projects", JSON.stringify(projects));
   localStorage.setItem("work", JSON.stringify(work));
@@ -75,7 +91,7 @@ function save() {
 // ✅ Projekte
 
 function addProject() {
-  alert("button geht");
+  //alert("button geht");
   let name = document.getElementById("projectInput").value;
   if (!name) return;
 
