@@ -57,6 +57,7 @@ button {
 <div id="workInfo"></div>
 
 <script>
+let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
 
 let projects;
 try {
@@ -85,6 +86,7 @@ try {
 function save() {
   localStorage.setItem("projects", JSON.stringify(projects));
   localStorage.setItem("work", JSON.stringify(work));
+  localStorage.setItem("activeProject", JSON.stringify(activeProject));
   render();
 }
 
@@ -106,6 +108,22 @@ function addProject() {
   save();
 }
 
+function selectProject(i) {
+  // aktuellen stoppen wenn läuft
+  if (activeProject !== null) {
+    stopTimer(activeProject);
+  }
+
+  activeProject = i;
+
+  // wenn Arbeitsmodus läuft → direkt starten
+  if (work.running) {
+    startTimer(i);
+  }
+
+  save();
+}
+  
 function editProject(i) {
   let name = prompt("Neuer Name:", projects[i].name);
   if (name) {
@@ -161,7 +179,6 @@ function stopTimer(i) {
 }
 
 // ✅ Arbeitsmodus
-
 function startWork() {
   if (work.running) return;
 
@@ -169,6 +186,11 @@ function startWork() {
   work.paused = false;
   work.start = Date.now();
 
+  // wenn Projekt gewählt → starten
+  if (activeProject !== null) {
+    startTimer(activeProject);
+  }
+  
   save();
 }
 
@@ -179,12 +201,20 @@ function pauseWork() {
   work.running = false;
   work.paused = true;
 
+  if (activeProject !== null) {
+    stopTimer(activeProject);
+  }
+ 
   save();
 }
 
 function stopWork() {
   if (work.running) {
     work.total += Date.now() - work.start;
+  }
+
+ if (activeProject !== null) {
+    stopTimer(activeProject);
   }
 
   work.running = false;
@@ -248,14 +278,21 @@ function render() {
       `;
     });
 
-    let active = p.running ? "active" : "";
+ let active = (p.running || activeProject === i) ? "active" : "";
+    
+let selected = activeProject === i ? "active" : "";
 
-    div.innerHTML = `
-      <strong>${p.name}</strong><br>
-      Gesamt: ${format(getTotal(p))}<br>
+div.innerHTML = `
+  <strong>${p.name}</strong><br>
+  Gesamt: ${format(getTotal(p))}<br>
 
-      <button class="start ${active}" onclick="startTimer(${i})">Start</button>
-      <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
+  <button onclick="selectProject(${i})" class="${selected}">
+    🎯 auswählen
+  </button>
+
+  <button class="start ${p.running ? "active" : ""}" onclick="startTimer(${i})">Start</button>
+  <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
+
 
       ${sessionsHtml}
 
