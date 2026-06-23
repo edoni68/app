@@ -309,17 +309,6 @@ function render() {
   projects.forEach((p, i) => {
     let div = document.createElement("div");
 
-
-    let sessionsHtml = "";
-
-    p.sessions.slice(-5).forEach(s => {
-      sessionsHtml += `
-        <div class="small">
-          ${formatTime(s.start)} – ${formatTime(s.end)}
-        </div>
-      `;
-    });
-
 let runningClass = p.running ? "running" : "";
 let selectedClass = activeProject === i ? "selected" : "";
 
