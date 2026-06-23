@@ -194,4 +194,92 @@ function stopWork() {
   save();
 }
 
+// ✅ Helpers
 
+function format(ms) {
+  let sec = Math.floor(ms / 1000);
+  let min = Math.floor(sec / 60);
+  let h = Math.floor(min / 60);
+  return `${h}h ${min % 60}m ${sec % 60}s`;
+}
+
+function formatTime(ts) {
+  let d = new Date(ts);
+  return d.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+function getTotal(p) {
+  let total = 0;
+
+  p.sessions.forEach(s => {
+    total += s.end - s.start;
+  });
+
+  if (p.running) {
+    total += Date.now() - p.startTime;
+  }
+
+  return total;
+}
+
+// ✅ Render
+
+function render() {
+  let container = document.getElementById("projects");
+  let workInfo = document.getElementById("workInfo");
+
+  container.innerHTML = "";
+
+  projects.forEach((p, i) => {
+    let div = document.createElement("div");
+    div.className = "project";
+
+    let sessionsHtml = "";
+
+    p.sessions.slice(-5).forEach(s => {
+      sessionsHtml += `
+        <div class="small">
+          ${formatTime(s.start)} – ${formatTime(s.end)}
+        </div>
+      `;
+    });
+
+    let active = p.running ? "active" : "";
+
+    div.innerHTML = `
+      <strong>${p.name}</strong><br>
+      Gesamt: ${format(getTotal(p))}<br>
+
+      <button class="start ${active}" onclick="startTimer(${i})">Start</button>
+      <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
+
+      ${sessionsHtml}
+
+      <button onclick="editProject(${i})">✏️</button>
+      <button onclick="deleteProject(${i})">🗑️</button>
+    `;
+
+    container.appendChild(div);
+  });
+
+  let total = work.total;
+
+  if (work.running) {
+    total += Date.now() - work.start;
+  }
+
+  workInfo.innerHTML = `Gesamt Arbeitszeit: ${format(total)}`;
+}
+
+// ✅ Start
+setInterval(render, 1000);
+render();
+
+</script>
+
+</body>
+</html>  
