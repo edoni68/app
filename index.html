@@ -2,42 +2,16 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Zeiterfassung Pro</title>
+<title>Zeiterfassung</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a84ff">
 
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
 <style>
 body {
   font-family: -apple-system;
   background: #f2f2f7;
-  margin: 0;
   padding: 20px;
 }
-
-h1 { text-align: center; }
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: none;
-}
-
-button {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: none;
-  margin: 3px;
-}
-
-.start { background: #34c759; color: white; }
-.stop { background: #ff3b30; color: white; }
-.pause { background: #ff9500; color: white; }
 
 .project {
   background: white;
@@ -46,9 +20,10 @@ button {
   margin-top: 10px;
 }
 
-.small {
-  font-size: 12px;
-  color: gray;
+button {
+  margin: 3px;
+  padding: 8px;
+  border-radius: 10px;
 }
 </style>
 </head>
@@ -62,34 +37,31 @@ button {
 
 <div id="projects"></div>
 
-<h2>📅 Heute</h2>
-<div id="today"></div>
-
 <script>
-let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
 
 function save() {
   localStorage.setItem("projects", JSON.stringify(projects));
   render();
 }
 
+// ✅ NEU: stopAll stabil
 function stopAll() {
-  projects.forEach((p, i) => {
+  projects.forEach(p => {
     if (p.running) {
-      addTime(p);
+      p.sessions.push({
+        start: p.startTime,
+        end: Date.now()
+      });
       p.running = false;
-      p.paused = false;
       p.startTime = null;
     }
   });
 }
 
+// ✅ Projekt erstellen
 function addProject() {
-alert("Button geht");
   let name = document.getElementById("projectInput").value;
   if (!name) return;
 
@@ -97,14 +69,14 @@ alert("Button geht");
     name,
     sessions: [],
     running: false,
-    paused: false,
     startTime: null
   });
-  
+
   document.getElementById("projectInput").value = "";
   save();
 }
 
+// ✅ Start
 function startTimer(i) {
   stopAll();
 
@@ -115,7 +87,8 @@ function startTimer(i) {
   save();
 }
 
-function pauseTimer(i) {
+// ✅ Stop
+function stopTimer(i) {
   let p = projects[i];
   if (!p.running) return;
 
@@ -125,31 +98,13 @@ function pauseTimer(i) {
   });
 
   p.running = false;
-  p.paused = true;
   p.startTime = null;
 
   save();
 }
 
-function stopTimer(i) {
-  let p = projects[i];
-  if (!p.running && !p.paused) return;
-
-  if (p.running) {
-    p.sessions.push({
-      start: p.startTime,
-      end: Date.now()
-    });
-  }
-
-  p.running = false;
-  p.paused = false;
-  p.startTime = null;
-
-  save();
-}
-
-function getTotalTime(p) {
+// ✅ Zeit berechnen
+function getTotal(p) {
   let total = 0;
 
   p.sessions.forEach(s => {
@@ -163,35 +118,7 @@ function getTotalTime(p) {
   return total;
 }
 
-function formatTime(ts) {
-  let d = new Date(ts);
-  return d.toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
-  
-function addTime(p) {
-  let day = todayKey();
-  if (!p.timeByDay[day]) p.timeByDay[day] = 0;
-
-  p.timeByDay[day] += Date.now() - p.startTime;
-}
-
-function deleteProject(i) {
-  if (!confirm("Projekt wirklich löschen?")) return;
-  projects.splice(i, 1);
-  save();
-}
-
-function editProject(i) {
-  let newName = prompt("Neuer Name:", projects[i].name);
-  if (newName) {
-    projects[i].name = newName;
-    save();
-  }
-}
-
+// ✅ Format Dauer
 function format(ms) {
   let sec = Math.floor(ms / 1000);
   let min = Math.floor(sec / 60);
@@ -199,64 +126,46 @@ function format(ms) {
   return `${h}h ${min % 60}m`;
 }
 
-function getTodayTotal(p) {
-  let t = p.timeByDay[todayKey()] || 0;
-
-  if (p.running) {
-    t += Date.now() - p.startTime;
-  }
-
-  return t;
+// ✅ Format Uhrzeit
+function formatTime(ts) {
+  let d = new Date(ts);
+  return d.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
+// ✅ Render
 function render() {
   let container = document.getElementById("projects");
-  let todayBox = document.getElementById("today");
-
   container.innerHTML = "";
-  todayBox.innerHTML = "";
-
-  let totalToday = 0;
 
   projects.forEach((p, i) => {
-    let today = getTodayTotal(p);
-    totalToday += today;
-
     let div = document.createElement("div");
     div.className = "project";
 
-    let sessionList = "";
-    
+    let sessionsHtml = "";
+
     p.sessions.slice(-5).forEach(s => {
-      sessionList += `
-        <div class="small">
+      sessionsHtml += `
+        <div>
           ${formatTime(s.start)} – ${formatTime(s.end)}
         </div>
       `;
     });
-    
+
     div.innerHTML = `
       <strong>${p.name}</strong><br>
-      Gesamt: ${format(getTotalTime(p))}<br>
-    
-      <button class="start" onclick="startTimer(${i})">Start</button>
-      <button class="pause" onclick="pauseTimer(${i})">Pause</button>
-      <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
-    
-      ${sessionList}
-    
-      <button onclick="editProject(${i})">✏️</button>
-      <button onclick="deleteProject(${i})">🗑️</button>
+      Gesamt: ${format(getTotal(p))}<br>
+
+      <button onclick="startTimer(${i})">Start</button>
+      <button onclick="stopTimer(${i})">Stop</button>
+
+      ${sessionsHtml}
     `;
-  
+
     container.appendChild(div);
-
-    todayBox.innerHTML += `
-      ${p.name}: ${format(today)}<br>
-    `;
   });
-
-  todayBox.innerHTML += `<hr><strong>Gesamt: ${format(totalToday)}</strong>`;
 }
 
 setInterval(render, 1000);
