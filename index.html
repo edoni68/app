@@ -95,12 +95,12 @@ function addProject() {
 
   projects.push({
     name,
-    timeByDay: {},
+    sessions: [],
     running: false,
     paused: false,
     startTime: null
   });
-
+  
   document.getElementById("projectInput").value = "";
   save();
 }
@@ -110,7 +110,6 @@ function startTimer(i) {
 
   let p = projects[i];
   p.running = true;
-  p.paused = false;
   p.startTime = Date.now();
 
   save();
@@ -120,9 +119,14 @@ function pauseTimer(i) {
   let p = projects[i];
   if (!p.running) return;
 
-  addTime(p);
+  p.sessions.push({
+    start: p.startTime,
+    end: Date.now()
+  });
+
   p.running = false;
   p.paused = true;
+  p.startTime = null;
 
   save();
 }
@@ -131,7 +135,12 @@ function stopTimer(i) {
   let p = projects[i];
   if (!p.running && !p.paused) return;
 
-  if (p.running) addTime(p);
+  if (p.running) {
+    p.sessions.push({
+      start: p.startTime,
+      end: Date.now()
+    });
+  }
 
   p.running = false;
   p.paused = false;
@@ -140,6 +149,28 @@ function stopTimer(i) {
   save();
 }
 
+function getTotalTime(p) {
+  let total = 0;
+
+  p.sessions.forEach(s => {
+    total += s.end - s.start;
+  });
+
+  if (p.running) {
+    total += Date.now() - p.startTime;
+  }
+
+  return total;
+}
+
+function formatTime(ts) {
+  let d = new Date(ts);
+  return d.toLocaleTimeString("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+  
 function addTime(p) {
   let day = todayKey();
   if (!p.timeByDay[day]) p.timeByDay[day] = 0;
@@ -194,17 +225,30 @@ function render() {
     let div = document.createElement("div");
     div.className = "project";
 
+    let sessionList = "";
     
-div.innerHTML = `
-  <strong>${p.name}</strong><br>
-  Heute: ${format(today)}<br>
-  <button class="start" onclick="startTimer(${i})">Start</button>
-  <button class="pause" onclick="pauseTimer(${i})">Pause</button>
-  <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
-  <button onclick="editProject(${i})">✏️</button>
-  <button onclick="deleteProject(${i})">🗑️</button>
-`;
+    p.sessions.slice(-5).forEach(s => {
+      sessionList += `
+        <div class="small">
+          ${formatTime(s.start)} – ${formatTime(s.end)}
+        </div>
+      `;
+    });
     
+    div.innerHTML = `
+      <strong>${p.name}</strong><br>
+      Gesamt: ${format(getTotalTime(p))}<br>
+    
+      <button class="start" onclick="startTimer(${i})">Start</button>
+      <button class="pause" onclick="pauseTimer(${i})">Pause</button>
+      <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
+    
+      ${sessionList}
+    
+      <button onclick="editProject(${i})">✏️</button>
+      <button onclick="deleteProject(${i})">🗑️</button>
+    `;
+  
     container.appendChild(div);
 
     todayBox.innerHTML += `
