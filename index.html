@@ -57,7 +57,7 @@ button {
 <div id="workInfo"></div>
 
 <script>
-
+localStorage.clear();
 let projects = JSON.parse(localStorage.getItem("projects")) || [];
 let work = JSON.parse(localStorage.getItem("work")) || {
   running: false,
