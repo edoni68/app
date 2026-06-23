@@ -194,16 +194,17 @@ function render() {
     let div = document.createElement("div");
     div.className = "project";
 
-    div.innerHTML = `
-      <strong>${p.name}</strong><br>
-      Heute: ${format(today)}<br>
-      <button class="start" onclick="startTimer(${i})">Start</button>
-      <button class="pause" onclick="pauseTimer(${i})">Pause</button>
-      <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
-      <button onclick="editProject(${i})">ändern</button>
-      <button onclick="deleteProject(${i})">löschen</button>
-    `;
-
+    
+div.innerHTML = `
+  <strong>${p.name}</strong><br>
+  Heute: ${format(today)}<br>
+  <button class="start" onclick="startTimer(${i})">Start</button>
+  <button class="pause" onclick="pauseTimer(${i})">Pause</button>
+  <button class="stop" onclick="stopTimer(${i})">Stop</button><br>
+  <button onclick="editProject(${i})">✏️</button>
+  <button onclick="deleteProject(${i})">🗑️</button>
+`;
+    
     container.appendChild(div);
 
     todayBox.innerHTML += `
