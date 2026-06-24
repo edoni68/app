@@ -422,6 +422,11 @@ let activeName = "Kein Projekt gewählt";
 let status = "🔴 Kein Projekt";
 let workTime = work.total;
 let stateClass = "dashboard-idle";
+ 
+// ✅ Live-Zeit berücksichtigen
+if (work.running && work.start) {
+  workTime += Date.now() - work.start;
+}
 
 // Projekt ermitteln
 if (activeProject !== null && projects[activeProject]) {
@@ -433,7 +438,6 @@ if (activeProject !== null && projects[activeProject]) {
 if (work.running) {
   status = "🟢 läuft";
   stateClass = "dashboard-running";
-  workTime += Date.now() - work.start;
 } else if (work.paused) {
   status = "⏸️ pausiert";
   stateClass = "dashboard-paused";
