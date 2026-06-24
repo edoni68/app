@@ -78,22 +78,37 @@ button {
   padding-left: 5px;
 }
 #dashboard {
-  border: 2px solid #0a84ff;
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 15px;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 10;
 }
+
+.dashboard-running {
+  border: 3px solid #34c759;
+}
+
+.dashboard-paused {
+  border: 3px solid #ff9500;
+}
+
+.dashboard-idle {
+  border: 3px solid #ff3b30;
+}
+
 </style>
 </head>
 
 <body>
 
 <h1>⏱️ Zeiterfassung</h1>
-<div id="dashboard" style="
-  background:white;
-  padding:15px;
-  border-radius:16px;
-  margin-bottom:15px;
-  text-align:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
-"></div>
+  
+<div id="dashboard"></div>
   
 <input id="projectInput" placeholder="Projektname..." />
 <button onclick="addProject()">Projekt hinzufügen</button>
@@ -388,14 +403,52 @@ div.className = `project ${runningClass} ${selectedClass}`;
     status = "⏸️ pausiert";
   }
   
-  // Dashboard anzeigen
-  dashboard.innerHTML = `
-    <div style="font-size:18px;"><strong>🎯 ${activeName}</strong></div>
-    <div style="margin-top:5px;">${status}</div>
-    <div style="font-size:22px; margin-top:8px;">
-      ${format(workTime)}
-    </div>
-  `;
+// Dashboard 
+let dashboard = document.getElementById("dashboard");
+
+let activeName = "Kein Projekt gewählt";
+let status = "🔴 Kein Projekt";
+let workTime = work.total;
+let stateClass = "dashboard-idle";
+
+// Projekt ermitteln
+if (activeProject !== null && projects[activeProject]) {
+  activeName = projects[activeProject].name;
+  status = "⏸️ bereit";
+}
+
+// Status bestimmen
+if (work.running) {
+  status = "🟢 läuft";
+  stateClass = "dashboard-running";
+  workTime += Date.now() - work.start;
+} else if (work.paused) {
+  status = "⏸️ pausiert";
+  stateClass = "dashboard-paused";
+}
+
+// Dashboard UI
+dashboard.className = stateClass;
+
+dashboard.innerHTML = `
+  <div style="font-size:20px; font-weight:bold;">
+    🎯 ${activeName}
+  </div>
+
+  <div style="margin:6px 0;">
+    ${status}
+  </div>
+
+  <div style="font-size:26px; font-weight:bold;">
+    ${format(workTime)}
+  </div>
+
+  <div style="margin-top:10px;">
+    <button onclick="startWork()" class="start big-btn">▶️</button>
+    <button onclick="pauseWork()" class="big-btn">⏸</button>
+    <button onclick="stopWork()" class="stop big-btn">⏹</button>
+  </div>
+`;
 
   
 }
