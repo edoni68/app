@@ -158,6 +158,7 @@ button {
 
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
+let selectedExportProject = localStorage.getItem("selectedExportProject") || "all";
 
 let projects;
 try {
@@ -699,10 +700,10 @@ function exportCSV(filter) {
   let totalProjectTime = 0;
   //let selectedProjectValue = document.getElementById("exportProject").value;
 
-  // ✅ FIX
-  let selectedProject = selectedProjectValue === "all"
-    ? "all"
-    : parseInt(selectedProjectValue);
+ // ✅ FIX
+ let selectedProject = selectedExportProject === "all"
+  ? "all"
+  : parseInt(selectedExportProject);
 
 
 projects.forEach((p, pIndex) => {
