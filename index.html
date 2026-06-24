@@ -233,9 +233,24 @@ function stopAll() {
 }
 
 function startTimer(i) {
-  stopAll();
-
   let p = projects[i];
+
+  // wenn dieses Projekt schon läuft → nichts tun
+  if (p.running) return;
+
+  // andere stoppen
+  projects.forEach((proj, index) => {
+    if (proj.running && index !== i) {
+      proj.sessions.push({
+        start: proj.startTime,
+        end: Date.now()
+      });
+      proj.running = false;
+      proj.startTime = null;
+    }
+  });
+
+  // dieses starten
   p.running = true;
   p.startTime = Date.now();
 
@@ -244,7 +259,8 @@ function startTimer(i) {
 
 function stopTimer(i) {
   let p = projects[i];
-  if (!p.running) return;
+
+  if (!p.running || !p.startTime) return;
 
   p.sessions.push({
     start: p.startTime,
@@ -445,6 +461,12 @@ function render() {
     <div>${status}</div>
     <div style="font-size:26px;">
       ${format(workTime)}
+    </div>
+    
+    <div style="margin-top:10px;">
+      <button onclick="startWork()" class="start big-btn">▶️</button>
+      <button onclick="pauseWork()" class="big-btn">⏸</button>
+      <button onclick="stopWork()" class="stop big-btn">⏹</button>
     </div>
   `;
 
