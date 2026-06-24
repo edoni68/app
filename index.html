@@ -362,161 +362,135 @@ function render() {
 
   container.innerHTML = "";
 
+  // Projekte
   projects.forEach((p, i) => {
     let div = document.createElement("div");
 
-let runningClass = p.running ? "running" : "";
-let selectedClass = activeProject === i ? "selected" : "";
+    let runningClass = p.running ? "running" : "";
+    let selectedClass = activeProject === i ? "selected" : "";
 
-let sessionsHtml = "";
+    let sessionsHtml = "";
 
-p.sessions.slice(-10).forEach(s => {
-  sessionsHtml += `
-    <div class="session">
-      ${formatTime(s.start)} – ${formatTime(s.end)}
-    </div>
-  `;
-});
+    p.sessions.slice(-10).forEach(s => {
+      sessionsHtml += `
+        <div class="session">
+          ${formatTime(s.start)} – ${formatTime(s.end)}
+        </div>
+      `;
+    });
 
-div.innerHTML = `
-  <strong style="font-size:18px">${p.name}</strong><br>
-  <div style="margin:5px 0">
-    ⏱ ${format(getTotal(p))}
-  </div>
+    div.innerHTML = `
+      <strong style="font-size:18px">${p.name}</strong><br>
+      <div style="margin:5px 0">
+        ⏱ ${format(getTotal(p))}
+      </div>
 
-  <button class="select big-btn" onclick="selectProject(${i})">
-    ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
-  </button>
+      <button class="select big-btn" onclick="selectProject(${i})">
+        ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
+      </button>
 
-  <button class="start big-btn" onclick="startTimer(${i})">
-    ▶️ Start
-  </button>
+      <button class="start big-btn" onclick="startTimer(${i})">▶️ Start</button>
+      <button class="stop big-btn" onclick="stopTimer(${i})">⏹ Stop</button>
 
-  <button class="stop big-btn" onclick="stopTimer(${i})">
-    ⏹ Stop
-  </button>
+      ${sessionsHtml}
 
-  ${sessionsHtml}
+      <div style="margin-top:10px;">
+        <button onclick="editProject(${i})">✏️</button>
+        <button onclick="deleteProject(${i})">🗑️</button>
+      </div>
+    `;
 
-  <div style="margin-top:10px;">
-    <button onclick="editProject(${i})">✏️</button>
-    <button onclick="deleteProject(${i})">🗑️</button>
-  </div>
-`;
-div.className = `project ${runningClass} ${selectedClass}`;
+    div.className = `project ${runningClass} ${selectedClass}`;
     container.appendChild(div);
   });
 
+  // ✅ Arbeitszeit
   let total = work.total;
-
   if (work.running) {
     total += Date.now() - work.start;
   }
-
   workInfo.innerHTML = `Gesamt Arbeitszeit: ${format(total)}`;
-  
-  
-let dashboard = document.getElementById("dashboard");
 
-let activeName = "Kein Projekt gewählt";
-let status = "🔴 Kein Projekt";
-let workTime = work.total;
-let stateClass = "dashboard-idle";
- 
-// ✅ Live-Zeit berücksichtigen
-if (work.running && work.start) {
-  workTime += Date.now() - work.start;
-}
+  // ✅ DASHBOARD
+  let dashboard = document.getElementById("dashboard");
 
-// Projekt ermitteln
-if (activeProject !== null && projects[activeProject]) {
-  activeName = projects[activeProject].name;
-  status = "⏸️ bereit";
-}
+  let activeName = "Kein Projekt gewählt";
+  let status = "🔴 Kein Projekt";
+  let workTime = work.total;
+  let stateClass = "dashboard-idle";
 
-// Status bestimmen
-if (work.running) {
-  status = "🟢 läuft";
-  stateClass = "dashboard-running";
-} else if (work.paused) {
-  status = "⏸️ pausiert";
-  stateClass = "dashboard-paused";
-}
+  if (work.running && work.start) {
+    workTime += Date.now() - work.start;
+  }
 
-// Dashboard UI
-dashboard.className = stateClass;
+  if (activeProject !== null && projects[activeProject]) {
+    activeName = projects[activeProject].name;
+    status = "⏸️ bereit";
+  }
 
-dashboard.innerHTML = `
-  <div style="font-size:20px; font-weight:bold;">
-    🎯 ${activeName}
-  </div>
+  if (work.running) {
+    status = "🟢 läuft";
+    stateClass = "dashboard-running";
+  } else if (work.paused) {
+    status = "⏸️ pausiert";
+    stateClass = "dashboard-paused";
+  }
 
-  <div style="margin:6px 0;">
-    ${status}
-  </div>
+  dashboard.className = stateClass;
 
-  <div style="font-size:26px; font-weight:bold;">
-    ${format(workTime)}
-  </div>
+  dashboard.innerHTML = `
+    <div style="font-size:20px; font-weight:bold;">
+      🎯 ${activeName}
+    </div>
+    <div>${status}</div>
+    <div style="font-size:26px;">
+      ${format(workTime)}
+    </div>
+  `;
 
-  <div style="margin-top:10px;">
-    <button onclick="startWork()" class="start big-btn">▶️</button>
-    <button onclick="pauseWork()" class="big-btn">⏸</button>
-    <button onclick="stopWork()" class="stop big-btn">⏹</button>
-  </div>
-`;
+  // ✅ REPORT
+  let reportTodayEl = document.getElementById("reportToday");
+  let reportWeekEl = document.getElementById("reportWeek");
 
-let reportTodayEl = document.getElementById("reportToday");
-let reportWeekEl = document.getElementById("reportWeek");
+  let todayTotals = {};
+  let weekTotals = {};
 
-let todayTotals = {};
-let weekTotals = {};
+  projects.forEach(p => {
+    p.sessions.forEach(s => {
+      let duration = s.end - s.start;
 
-projects.forEach(p => {
-  p.sessions.forEach(s => {
-    let duration = s.end - s.start;
+      if (isToday(s.start)) {
+        todayTotals[p.name] = (todayTotals[p.name] || 0) + duration;
+      }
 
-    // Heute
-    if (isToday(s.start)) {
-      if (!todayTotals[p.name]) todayTotals[p.name] = 0;
-      todayTotals[p.name] += duration;
-    }
-
-    // Woche
-    if (isThisWeek(s.start)) {
-      if (!weekTotals[p.name]) weekTotals[p.name] = 0;
-      weekTotals[p.name] += duration;
-    }
+      if (isThisWeek(s.start)) {
+        weekTotals[p.name] = (weekTotals[p.name] || 0) + duration;
+      }
+    });
   });
-});
-  
+
+  let todayHtml = "<strong>Heute:</strong><br>";
+  let todaySum = 0;
+
+  for (let name in todayTotals) {
+    todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
+    todaySum += todayTotals[name];
+  }
+
+  todayHtml += `<strong>Gesamt: ${format(todaySum)}</strong>`;
+  reportTodayEl.innerHTML = todayHtml;
+
+  let weekHtml = "<strong>Diese Woche:</strong><br>";
+  let weekSum = 0;
+
+  for (let name in weekTotals) {
+    weekHtml += `${name}: ${format(weekTotals[name])}<br>`;
+    weekSum += weekTotals[name];
+  }
+
+  weekHtml += `<strong>Gesamt: ${format(weekSum)}</strong>`;
+  reportWeekEl.innerHTML = weekHtml;
 }
-
-// ✅ Heute
-let todayHtml = "<strong>Heute:</strong><br>";
-let todaySum = 0;
-
-for (let name in todayTotals) {
-  todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
-  todaySum += todayTotals[name];
-}
-
-todayHtml += `<strong>Gesamt: ${format(todaySum)}</strong>`;
-
-reportTodayEl.innerHTML = todayHtml;
-
-// ✅ Woche
-let weekHtml = "<strong>Diese Woche:</strong><br>";
-let weekSum = 0;
-
-for (let name in weekTotals) {
-  weekHtml += `${name}: ${format(weekTotals[name])}<br>`;
-  weekSum += weekTotals[name];
-}
-
-weekHtml += `<strong>Gesamt: ${format(weekSum)}</strong>`;
-
-reportWeekEl.innerHTML = weekHtml;
 
   
 // ✅ Start
