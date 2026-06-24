@@ -144,13 +144,17 @@ button {
 
 <div id="reportToday"></div>
 <div id="reportWeek" style="margin-top:10px;"></div>
+<div id="reportMonth" style="margin-top:10px;"></div>
 
 <div class="export-row" style="margin-top:10px;">
   <button onclick="exportCSV('today')" class="big-btn">📤 Heute</button>
   <button onclick="exportCSV('week')" class="big-btn">📤 Woche</button>
   <button onclick="exportCSV('all')" class="big-btn">📤 Alles</button>
 </div>
-
+  
+<select id="exportProject" class="big-btn">
+  <option value="all">Alle Projekte</option>
+</select>
 
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
@@ -393,6 +397,14 @@ function isThisWeek(ts) {
   return d >= firstDay && d <= lastDay;
 }
 
+function isThisMonth(ts) {
+  let d = new Date(ts);
+  let now = new Date();
+
+  return d.getMonth() === now.getMonth() &&
+         d.getFullYear() === now.getFullYear();
+}
+  
 // Projekt abwählen
 function clearProject() {
 
@@ -414,6 +426,14 @@ function render() {
 
   container.innerHTML = "";
 
+  // export dropdown füllen
+  let select = document.getElementById("exportProject");
+  select.innerHTML = `<option value="all">Alle Projekte</option>`;
+  
+  projects.forEach((p, i) => {
+    select.innerHTML += `<option value="${i}">${p.name}</option>`;
+  });
+  
   // ✅ Button zum Abwählen
   let noProjectBtn = document.createElement("div");
   
@@ -604,6 +624,47 @@ weekHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workWeek)}</strong
 weekHtml += `<br><small>(inkl. laufender Zeit)</small>`;  
 
 reportWeekEl.innerHTML = weekHtml;
+
+// Monat
+let reportMonthEl = document.getElementById("reportMonth");
+
+let monthTotals = {};
+let monthSum = 0;
+
+// Projekte sammeln
+projects.forEach(p => {
+  p.sessions.forEach(s => {
+    if (isThisMonth(s.start)) {
+      let duration = s.end - s.start;
+      monthTotals[p.name] = (monthTotals[p.name] || 0) + duration;
+      monthSum += duration;
+    }
+  });
+});
+
+// Arbeitszeit Monat
+let workMonth = work.total;
+if (work.running && work.start) {
+  workMonth += Date.now() - work.start;
+}
+
+// HTML
+let monthHtml = "<strong>Diesen Monat:</strong><br>";
+
+for (let name in monthTotals) {
+  monthHtml += `${name}: ${format(monthTotals[name])}<br>`;
+}
+
+monthHtml += `<hr>`;
+monthHtml += `🧾 Projekte: ${format(monthSum)}<br>`;
+monthHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workMonth)}</strong>`;
+
+let diffMonth = workMonth - monthSum;
+if (diffMonth > 1000) {
+  monthHtml += `<br>⚠️ Ohne Projekt: ${format(diffMonth)}`;
+}
+
+reportMonthEl.innerHTML = monthHtml;
   
 }
 
@@ -618,25 +679,29 @@ function exportCSV(filter) {
   rows.push("Projekt;Start;Ende;Dauer");
 
   let totalProjectTime = 0;
+  let selectedProject = document.getElementById("exportProject").value;
 
-  projects.forEach(p => {
-    p.sessions.forEach(s => {
+  projects.forEach((p, pIndex) => {
+  p.sessions.forEach(s => {
 
-      // ✅ FILTER
-      if (filter === "today" && !isToday(s.start)) return;
-      if (filter === "week" && !isThisWeek(s.start)) return;
+    // Projektfilter
+    if (selectedProject !== "all" && selectedProject != pIndex) return;
 
-      let start = new Date(s.start).toLocaleString("de-DE");
-      let end = new Date(s.end).toLocaleString("de-DE");
+    // Zeitfilter
+    if (filter === "today" && !isToday(s.start)) return;
+    if (filter === "week" && !isThisWeek(s.start)) return;
 
-      let durationMs = s.end - s.start;
-      let duration = format(durationMs);
+    let start = new Date(s.start).toLocaleString("de-DE");
+    let end = new Date(s.end).toLocaleString("de-DE");
 
-      totalProjectTime += durationMs;
+    let durationMs = s.end - s.start;
+    let duration = format(durationMs);
 
-      rows.push(`${p.name};${start};${end};${duration}`);
-    });
+    totalProjectTime += durationMs;
+
+    rows.push(`${p.name};${start};${end};${duration}`);
   });
+});
 
   // ✅ Gesamt-Arbeitszeit berechnen
   let workTotal = work.total;
