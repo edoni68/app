@@ -141,6 +141,7 @@ button {
 <div id="reportToday"></div>
 <div id="reportWeek" style="margin-top:10px;"></div>
 
+<button onclick="exportCSV()" class="big-btn">📤 Export CSV</button>
 
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
@@ -602,6 +603,43 @@ reportWeekEl.innerHTML = weekHtml;
 setInterval(render, 500);
 render();
 
+ function exportCSV() {
+
+  let rows = [];
+
+  // Header
+  rows.push("Projekt;Start;Ende;Dauer");
+
+  projects.forEach(p => {
+    p.sessions.forEach(s => {
+
+      let start = new Date(s.start).toLocaleString("de-DE");
+      let end = new Date(s.end).toLocaleString("de-DE");
+
+      let durationMs = s.end - s.start;
+      let duration = format(durationMs);
+
+      rows.push(`${p.name};${start};${end};${duration}`);
+    });
+  });
+
+  // CSV erzeugen
+  let csvContent = rows.join("\n");
+
+  let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+  let url = URL.createObjectURL(blob);
+
+  let link = document.createElement("a");
+  link.href = url;
+
+  // Dateiname mit Datum
+  let date = new Date().toISOString().split("T")[0];
+  link.download = `zeiterfassung_${date}.csv`;
+
+  link.click();
+} 
+  
 </script>
 
 </body>
