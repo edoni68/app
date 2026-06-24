@@ -496,6 +496,7 @@ if (work.running && projectRunning) {
     });
   });
 
+// Heute
 let todayHtml = "<strong>Heute:</strong><br>";
 let todaySum = 0;
 
@@ -505,14 +506,12 @@ for (let name in todayTotals) {
   todaySum += todayTotals[name];
 }
 
-// ✅ Arbeitszeit heute berechnen
-let workToday = todaySum;
+// ✅ WICHTIG: Arbeitszeit korrekt berechnen
+let workToday = work.total;
 
-// wenn gerade läuft → addieren
+// laufende Zeit dazu
 if (work.running && work.start) {
-  if (isToday(work.start)) {
-    workToday += Date.now() - work.start;
-  }
+  workToday += Date.now() - work.start;
 }
 
 todayHtml += `<hr>`;
@@ -531,21 +530,19 @@ for (let name in weekTotals) {
   weekSum += weekTotals[name];
 }
 
-// ✅ Arbeitszeit Woche berechnen
-let workWeek = weekSum;
+// ✅ WICHTIG: Arbeitszeit korrekt berechnen
+let workWeek = work.total;
 
-// laufende Zeit ergänzen (falls aktuell in dieser Woche)
+// laufende Zeit
 if (work.running && work.start) {
-  if (isThisWeek(work.start)) {
-    workWeek += Date.now() - work.start;
-  }
+  workWeek += Date.now() - work.start;
 }
 
 weekHtml += `<hr>`;
 weekHtml += `🧾 Projekte: ${format(weekSum)}<br>`;
-weekHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workWeek)}</strong><br>`;
-weekHtml += `<small>(inkl. laufender Zeit)</small>`;
- 
+weekHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workWeek)}</strong>`;
+weekHtml += `<br><small>(inkl. laufender Zeit)</small>`;  
+
 reportWeekEl.innerHTML = weekHtml;
   
 }
