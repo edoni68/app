@@ -521,16 +521,32 @@ todayHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workToday)}</stro
 
 reportTodayEl.innerHTML = todayHtml;
 
-  let weekHtml = "<strong>Diese Woche:</strong><br>";
-  let weekSum = 0;
+// ✅ Woche
+let weekHtml = "<strong>Diese Woche:</strong><br>";
+let weekSum = 0;
 
-  for (let name in weekTotals) {
-    weekHtml += `${name}: ${format(weekTotals[name])}<br>`;
-    weekSum += weekTotals[name];
+// Projektzeiten
+for (let name in weekTotals) {
+  weekHtml += `${name}: ${format(weekTotals[name])}<br>`;
+  weekSum += weekTotals[name];
+}
+
+// ✅ Arbeitszeit Woche berechnen
+let workWeek = weekSum;
+
+// laufende Zeit ergänzen (falls aktuell in dieser Woche)
+if (work.running && work.start) {
+  if (isThisWeek(work.start)) {
+    workWeek += Date.now() - work.start;
   }
+}
 
-  weekHtml += `<strong>Gesamt: ${format(weekSum)}</strong>`;
-  reportWeekEl.innerHTML = weekHtml;
+weekHtml += `<hr>`;
+weekHtml += `🧾 Projekte: ${format(weekSum)}<br>`;
+weekHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workWeek)}</strong>`;
+
+reportWeekEl.innerHTML = weekHtml;
+  
 }
 
   
