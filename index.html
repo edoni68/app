@@ -152,7 +152,7 @@ button {
   <button onclick="exportCSV('all')" class="big-btn">📤 Alles</button>
 </div>
   
-<select id="exportProject" class="big-btn">
+<select id="exportProject" onchange="saveExportSelection()" class="big-btn">
   <option value="all">Alle Projekte</option>
 </select>
 
@@ -417,6 +417,13 @@ function clearProject() {
 
   save();
 }  
+
+function saveExportSelection() {
+  let value = document.getElementById("exportProject").value;
+  localStorage.setItem("selectedExportProject", value);
+  selectedExportProject = value;
+}
+
   
 // ✅ Render
 function render() {
@@ -430,20 +437,20 @@ function render() {
   let select = document.getElementById("exportProject");
 
   // Auswahl merken (wenn gerade geändert)
-  if (select.value) {
-    selectedExportProject = select.value;
-    localStorage.setItem("selectedExportProject", selectedExportProject);
-  }
   
-  // neu aufbauen
+  // KEIN Speichern hier!!
+  let currentValue = selectedExportProject;
+
+  // dropdown bauen
   select.innerHTML = `<option value="all">Alle Projekte</option>`;
   
   projects.forEach((p, i) => {
     select.innerHTML += `<option value="${i}">${p.name}</option>`;
   });
   
-  // ✅ gespeicherte Auswahl wieder setzen
-  select.value = selectedExportProject;
+  // ✅ nur wieder setzen
+  select.value = currentValue;
+
   
   // ✅ Button zum Abwählen
   let noProjectBtn = document.createElement("div");
