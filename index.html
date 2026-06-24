@@ -196,7 +196,8 @@ function addProject() {
 
 function selectProject(i) {
   // aktuellen stoppen wenn läuft
-  if (activeProject !== null) {
+  //if (activeProject !== null) {
+  if (activeProject !== null && activeProject !== i) {
     stopTimer(activeProject);
   }
 
@@ -242,8 +243,14 @@ function stopAll() {
 function startTimer(i) {
   let p = projects[i];
 
+  // ✅ Projekt automatisch auswählen
+  activeProject = i;
+
   // wenn dieses Projekt schon läuft → nichts tun
-  if (p.running) return;
+  if (p.running) {
+    save();
+    return;
+  }
 
   // andere stoppen
   projects.forEach((proj, index) => {
