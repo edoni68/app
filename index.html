@@ -386,24 +386,7 @@ div.className = `project ${runningClass} ${selectedClass}`;
 
   workInfo.innerHTML = `Gesamt Arbeitszeit: ${format(total)}`;
   
-  let activeName = "Kein Projekt gewählt";
-  let status = "⏸️ Pause";
-  let workTime = work.total;
   
-  // aktuelles Projekt finden
-  if (activeProject !== null && projects[activeProject]) {
-    activeName = projects[activeProject].name;
-  }
-  
-  // Status bestimmen
-  if (work.running) {
-    status = "🟢 läuft";
-    workTime += Date.now() - work.start;
-  } else if (work.paused) {
-    status = "⏸️ pausiert";
-  }
-  
-// Dashboard 
 let dashboard = document.getElementById("dashboard");
 
 let activeName = "Kein Projekt gewählt";
