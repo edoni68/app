@@ -679,15 +679,21 @@ function exportCSV(filter) {
   rows.push("Projekt;Start;Ende;Dauer");
 
   let totalProjectTime = 0;
-  let selectedProject = document.getElementById("exportProject").value;
+  let selectedProjectValue = document.getElementById("exportProject").value;
 
-  projects.forEach((p, pIndex) => {
+  // ✅ FIX
+  let selectedProject = selectedProjectValue === "all"
+    ? "all"
+    : parseInt(selectedProjectValue);
+
+
+projects.forEach((p, pIndex) => {
   p.sessions.forEach(s => {
 
-    // Projektfilter
-    if (selectedProject !== "all" && selectedProject != pIndex) return;
+    // ✅ Projektfilter
+    if (selectedProject !== "all" && selectedProject !== pIndex) return;
 
-    // Zeitfilter
+    // ✅ Zeitfilter
     if (filter === "today" && !isToday(s.start)) return;
     if (filter === "week" && !isThisWeek(s.start)) return;
 
@@ -737,7 +743,14 @@ function exportCSV(filter) {
   link.href = url;
 
   let date = new Date().toISOString().split("T")[0];
-  link.download = `zeiterfassung_${filter}_${date}.csv`;
+  
+let namePart = selectedProject === "all"
+  ? "alle"
+  : projects[selectedProject].name;
+
+link.download = `zeiterfassung_${namePart}_${filter}_${date}.csv`;
+
+  //link.download = `zeiterfassung_${filter}_${date}.csv`;
 
   link.click();
 }
