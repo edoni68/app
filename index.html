@@ -444,13 +444,18 @@ function render() {
     status = "⏸️ bereit";
   }
 
-  if (work.running) {
-    status = "🟢 läuft";
-    stateClass = "dashboard-running";
-  } else if (work.paused) {
-    status = "⏸️ pausiert";
-    stateClass = "dashboard-paused";
-  }
+  
+// prüfen ob wirklich ein Projekt läuft
+let projectRunning = projects.some(p => p.running);
+
+if (work.running && projectRunning) {
+  status = "🟢 läuft";
+  stateClass = "dashboard-running";
+} else if (work.running && !projectRunning) {
+  status = "⚠️ kein Projekt aktiv";
+  stateClass = "dashboard-idle";
+}
+
 
   dashboard.className = stateClass;
 
@@ -491,16 +496,30 @@ function render() {
     });
   });
 
-  let todayHtml = "<strong>Heute:</strong><br>";
-  let todaySum = 0;
+let todayHtml = "<strong>Heute:</strong><br>";
+let todaySum = 0;
 
-  for (let name in todayTotals) {
-    todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
-    todaySum += todayTotals[name];
+// Projektzeiten
+for (let name in todayTotals) {
+  todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
+  todaySum += todayTotals[name];
+}
+
+// ✅ Arbeitszeit heute berechnen
+let workToday = todaySum;
+
+// wenn gerade läuft → addieren
+if (work.running && work.start) {
+  if (isToday(work.start)) {
+    workToday += Date.now() - work.start;
   }
+}
 
-  todayHtml += `<strong>Gesamt: ${format(todaySum)}</strong>`;
-  reportTodayEl.innerHTML = todayHtml;
+todayHtml += `<hr>`;
+todayHtml += `🧾 Projekte: ${format(todaySum)}<br>`;
+todayHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workToday)}</strong>`;
+
+reportTodayEl.innerHTML = todayHtml;
 
   let weekHtml = "<strong>Diese Woche:</strong><br>";
   let weekSum = 0;
