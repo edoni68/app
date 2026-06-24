@@ -68,6 +68,36 @@ button {
 .stop { background: #ff3b30; color: white; }
 .select { background: #0a84ff; color: white; }
 
+select {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Pfeil rechts */
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after {
+  content: "⌄";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #555;
+}
+select:focus {
+  outline: 2px solid #0a84ff;
+}
+  
 /* Status */
 .running {
   border: 2px solid #34c759;
@@ -152,15 +182,20 @@ button {
 <div id="reportWeek" style="margin-top:10px;"></div>
 <div id="reportMonth" style="margin-top:10px;"></div>
 
+<div style="font-size:13px; margin-top:10px; color:gray;">
+  Export Projekt
+</div>
 <div class="export-row" style="margin-top:10px;">
   <button onclick="exportCSV('today')" class="big-btn">📤 Heute</button>
   <button onclick="exportCSV('week')" class="big-btn">📤 Woche</button>
   <button onclick="exportCSV('all')" class="big-btn">📤 Alles</button>
 </div>
-  
-<select id="exportProject" onchange="saveExportSelection()" class="big-btn">
-  <option value="all">Alle Projekte</option>
-</select>
+
+<div class="select-wrapper">
+  <select id="exportProject" onchange="saveExportSelection()">
+    <option value="all">Alle Projekte</option>
+  </select>
+</div>
 
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
