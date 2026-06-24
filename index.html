@@ -642,7 +642,7 @@ render();
   let diff = workTotal - totalProjectTime;
 
   if (diff > 1000) {
-    rows.push(`Ohne Projekt;;;${format(diff)}`);
+    rows.push(`Ohne Projekt;;;${format(diff)} (Arbeitszeit ohne Zuordnung)`);
   }
 
   // ✅ CSV bauen
