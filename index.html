@@ -114,7 +114,11 @@ button {
   background: transparent;
   color: gray;
 }
-
+  
+.export-row {
+  display: flex;
+  gap: 5px;
+}
 </style>
 </head>
 
@@ -141,7 +145,12 @@ button {
 <div id="reportToday"></div>
 <div id="reportWeek" style="margin-top:10px;"></div>
 
-<button onclick="exportCSV()" class="big-btn">📤 Export CSV</button>
+<div class="export-row" style="margin-top:10px;">
+  <button onclick="exportCSV('today')" class="big-btn">📤 Heute</button>
+  <button onclick="exportCSV('week')" class="big-btn">📤 Woche</button>
+  <button onclick="exportCSV('all')" class="big-btn">📤 Alles</button>
+</div>
+
 
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
@@ -603,16 +612,19 @@ reportWeekEl.innerHTML = weekHtml;
 setInterval(render, 500);
 render();
 
- function exportCSV() {
+function exportCSV(filter) {
 
   let rows = [];
-
-  // Header
   rows.push("Projekt;Start;Ende;Dauer");
 
-  // ✅ Sessions exportieren
+  let totalProjectTime = 0;
+
   projects.forEach(p => {
     p.sessions.forEach(s => {
+
+      // ✅ FILTER
+      if (filter === "today" && !isToday(s.start)) return;
+      if (filter === "week" && !isThisWeek(s.start)) return;
 
       let start = new Date(s.start).toLocaleString("de-DE");
       let end = new Date(s.end).toLocaleString("de-DE");
@@ -620,32 +632,37 @@ render();
       let durationMs = s.end - s.start;
       let duration = format(durationMs);
 
+      totalProjectTime += durationMs;
+
       rows.push(`${p.name};${start};${end};${duration}`);
     });
   });
 
-  // ✅ ✅ HIER einfügen
-  // Ohne Projekt (optional)
-  let totalProjectTime = 0;
-
-  projects.forEach(p => {
-    p.sessions.forEach(s => {
-      totalProjectTime += s.end - s.start;
-    });
-  });
-
+  // ✅ Gesamt-Arbeitszeit berechnen
   let workTotal = work.total;
+
   if (work.running && work.start) {
     workTotal += Date.now() - work.start;
   }
 
+  // ✅ Filter berücksichtigen (wichtig!)
+  if (filter === "today") {
+    // nur heutige Arbeitszeit (vereinfacht: alles, wenn heute gestartet)
+    if (!isToday(work.start)) workTotal = totalProjectTime;
+  }
+
+  if (filter === "week") {
+    if (!isThisWeek(work.start)) workTotal = totalProjectTime;
+  }
+
+  // ✅ Ohne Projekt berechnen
   let diff = workTotal - totalProjectTime;
 
   if (diff > 1000) {
-    rows.push(`Ohne Projekt;;;${format(diff)} (Arbeitszeit ohne Zuordnung)`);
+    rows.push(`Ohne Projekt;;;${format(diff)}`);
   }
 
-  // ✅ CSV bauen
+  // ✅ CSV erzeugen
   let csvContent = rows.join("\n");
 
   let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -655,11 +672,10 @@ render();
   link.href = url;
 
   let date = new Date().toISOString().split("T")[0];
-  link.download = `zeiterfassung_${date}.csv`;
+  link.download = `zeiterfassung_${filter}_${date}.csv`;
 
   link.click();
 }
-
   
 </script>
 
