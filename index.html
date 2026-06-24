@@ -108,6 +108,13 @@ button {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
+.small-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+  background: transparent;
+  color: gray;
+}
+
 </style>
 </head>
 
@@ -392,11 +399,16 @@ function render() {
 
   // ✅ Button zum Abwählen
   let noProjectBtn = document.createElement("div");
+  
+  noProjectBtn.style.textAlign = "right";
+  noProjectBtn.style.marginBottom = "5px";
+  
   noProjectBtn.innerHTML = `
-    <button class="big-btn" onclick="clearProject()">
-      ❌ Kein Projekt aktiv
+    <button class="small-btn" onclick="clearProject()">
+      kein Projekt
     </button>
   `;
+  
   container.appendChild(noProjectBtn);
   
   // Projekte
@@ -465,9 +477,9 @@ function render() {
     status = "⏸️ bereit";
   }
   
-  if (activeProject === null) {
-    activeName = "❌ Kein Projekt";
-  }
+  //if (activeProject === null) {
+   // activeName = "❌ Kein Projekt";
+  // }
   
 // prüfen ob wirklich ein Projekt läuft
 let projectRunning = projects.some(p => p.running);
@@ -523,31 +535,32 @@ if (work.running && projectRunning) {
 // Heute
 let todayHtml = "<strong>Heute:</strong><br>";
 let todaySum = 0;
-let diff = workToday - todaySum;
-  
+
 // Projektzeiten
 for (let name in todayTotals) {
   todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
   todaySum += todayTotals[name];
 }
 
-// ✅ WICHTIG: Arbeitszeit korrekt berechnen
+// ✅ Arbeitszeit korrekt berechnen
 let workToday = work.total;
 
-// laufende Zeit dazu
 if (work.running && work.start) {
   workToday += Date.now() - work.start;
 }
+
+// ✅ Differenz richtig berechnen
+let diff = workToday - todaySum;
 
 todayHtml += `<hr>`;
 todayHtml += `🧾 Projekte: ${format(todaySum)}<br>`;
 todayHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workToday)}</strong>`;
 
-if (diff > 0) {
+// ✅ nur anzeigen wenn sinnvoll
+if (diff > 1000) {
   todayHtml += `<br>⚠️ Ohne Projekt: ${format(diff)}`;
 }
 
-  
 reportTodayEl.innerHTML = todayHtml;
 
 // ✅ Woche
