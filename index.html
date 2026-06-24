@@ -155,6 +155,30 @@ select:focus {
   display: flex;
   gap: 5px;
 }
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-row button {
+  flex: 1;
+}
+
+/* kleinere Buttons für Projekte */
+.small-btn2 {
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+/* hover press effekt */
+button:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+  
 </style>
 </head>
 
@@ -531,13 +555,22 @@ function render() {
         ⏱ ${format(getTotal(p))}
       </div>
 
-      <button class="select big-btn" onclick="selectProject(${i})">
-        ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
-      </button>
+      
+ 
+      <div class="btn-row">
+        <button class="select small-btn2" onclick="selectProject(${i})">
+          ${activeProject === i ? "✅ ausgewählt" : "🎯 auswählen"}
+        </button>
+        <button class="start small-btn2" onclick="startTimer(${i})">
+          ▶️ Start
+        </button>
+      
+        <button class="stop small-btn2" onclick="stopTimer(${i})">
+          ⏹ Stop
+        </button>
+      </div>
 
-      <button class="start big-btn" onclick="startTimer(${i})">▶️ Start</button>
-      <button class="stop big-btn" onclick="stopTimer(${i})">⏹ Stop</button>
-
+      
       ${sessionsHtml}
 
       <div style="margin-top:10px;">
