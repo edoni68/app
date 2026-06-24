@@ -369,6 +369,18 @@ function isThisWeek(ts) {
   return d >= firstDay && d <= lastDay;
 }
 
+// Projekt abwählen
+function clearProject() {
+
+  // laufendes Projekt stoppen
+  if (activeProject !== null) {
+    stopTimer(activeProject);
+  }
+
+  activeProject = null;
+
+  save();
+}  
   
 // ✅ Render
 function render() {
@@ -378,6 +390,15 @@ function render() {
 
   container.innerHTML = "";
 
+  // ✅ Button zum Abwählen
+  let noProjectBtn = document.createElement("div");
+  noProjectBtn.innerHTML = `
+    <button class="big-btn" onclick="clearProject()">
+      ❌ Kein Projekt aktiv
+    </button>
+  `;
+  container.appendChild(noProjectBtn);
+  
   // Projekte
   projects.forEach((p, i) => {
     let div = document.createElement("div");
@@ -443,7 +464,10 @@ function render() {
     activeName = projects[activeProject].name;
     status = "⏸️ bereit";
   }
-
+  
+  if (activeProject === null) {
+    activeName = "❌ Kein Projekt";
+  }
   
 // prüfen ob wirklich ein Projekt läuft
 let projectRunning = projects.some(p => p.running);
@@ -499,7 +523,8 @@ if (work.running && projectRunning) {
 // Heute
 let todayHtml = "<strong>Heute:</strong><br>";
 let todaySum = 0;
-
+let diff = workToday - todaySum;
+  
 // Projektzeiten
 for (let name in todayTotals) {
   todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
@@ -518,6 +543,11 @@ todayHtml += `<hr>`;
 todayHtml += `🧾 Projekte: ${format(todaySum)}<br>`;
 todayHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workToday)}</strong>`;
 
+if (diff > 0) {
+  todayHtml += `<br>⚠️ Ohne Projekt: ${format(diff)}`;
+}
+
+  
 reportTodayEl.innerHTML = todayHtml;
 
 // ✅ Woche
