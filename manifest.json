@@ -1,6 +1,6 @@
 {
   "name": "Zeiterfassung",
-  "short_name": "Zeit",
+  "short_name": "Zeiterfassung",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f2f2f7",
