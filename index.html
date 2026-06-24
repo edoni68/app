@@ -610,6 +610,7 @@ render();
   // Header
   rows.push("Projekt;Start;Ende;Dauer");
 
+  // ✅ Sessions exportieren
   projects.forEach(p => {
     p.sessions.forEach(s => {
 
@@ -623,22 +624,42 @@ render();
     });
   });
 
-  // CSV erzeugen
+  // ✅ ✅ HIER einfügen
+  // Ohne Projekt (optional)
+  let totalProjectTime = 0;
+
+  projects.forEach(p => {
+    p.sessions.forEach(s => {
+      totalProjectTime += s.end - s.start;
+    });
+  });
+
+  let workTotal = work.total;
+  if (work.running && work.start) {
+    workTotal += Date.now() - work.start;
+  }
+
+  let diff = workTotal - totalProjectTime;
+
+  if (diff > 1000) {
+    rows.push(`Ohne Projekt;;;${format(diff)}`);
+  }
+
+  // ✅ CSV bauen
   let csvContent = rows.join("\n");
 
   let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
   let url = URL.createObjectURL(blob);
 
   let link = document.createElement("a");
   link.href = url;
 
-  // Dateiname mit Datum
   let date = new Date().toISOString().split("T")[0];
   link.download = `zeiterfassung_${date}.csv`;
 
   link.click();
-} 
+}
+
   
 </script>
 
