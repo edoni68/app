@@ -428,11 +428,22 @@ function render() {
 
   // export dropdown füllen
   let select = document.getElementById("exportProject");
+
+  // Auswahl merken (wenn gerade geändert)
+  if (select.value) {
+    selectedExportProject = select.value;
+    localStorage.setItem("selectedExportProject", selectedExportProject);
+  }
+  
+  // neu aufbauen
   select.innerHTML = `<option value="all">Alle Projekte</option>`;
   
   projects.forEach((p, i) => {
     select.innerHTML += `<option value="${i}">${p.name}</option>`;
   });
+  
+  // ✅ gespeicherte Auswahl wieder setzen
+  select.value = selectedExportProject;
   
   // ✅ Button zum Abwählen
   let noProjectBtn = document.createElement("div");
@@ -679,7 +690,7 @@ function exportCSV(filter) {
   rows.push("Projekt;Start;Ende;Dauer");
 
   let totalProjectTime = 0;
-  let selectedProjectValue = document.getElementById("exportProject").value;
+  //let selectedProjectValue = document.getElementById("exportProject").value;
 
   // ✅ FIX
   let selectedProject = selectedProjectValue === "all"
