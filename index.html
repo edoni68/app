@@ -122,6 +122,10 @@ button {
 <button onclick="stopWork()" class="stop big-btn">⏹ Feierabend</button>
 
 <div id="workInfo" style="text-align:center; margin-top:10px;"></div>
+<h2>📊 Report</h2>
+
+<div id="reportToday"></div>
+<div id="reportWeek" style="margin-top:10px;"></div>
 
 
 <script>
@@ -324,6 +328,25 @@ function getTotal(p) {
   return total;
 }
 
+function isToday(ts) {
+  let d = new Date(ts);
+  let now = new Date();
+
+  return d.toDateString() === now.toDateString();
+}
+
+function isThisWeek(ts) {
+  let d = new Date(ts);
+  let now = new Date();
+
+  let firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
+  let lastDay = new Date(firstDay);
+  lastDay.setDate(firstDay.getDate() + 6);
+
+  return d >= firstDay && d <= lastDay;
+}
+
+  
 // ✅ Render
 function render() {
 
@@ -432,9 +455,59 @@ dashboard.innerHTML = `
   </div>
 `;
 
+let reportTodayEl = document.getElementById("reportToday");
+let reportWeekEl = document.getElementById("reportWeek");
+
+let todayTotals = {};
+let weekTotals = {};
+
+projects.forEach(p => {
+  p.sessions.forEach(s => {
+    let duration = s.end - s.start;
+
+    // Heute
+    if (isToday(s.start)) {
+      if (!todayTotals[p.name]) todayTotals[p.name] = 0;
+      todayTotals[p.name] += duration;
+    }
+
+    // Woche
+    if (isThisWeek(s.start)) {
+      if (!weekTotals[p.name]) weekTotals[p.name] = 0;
+      weekTotals[p.name] += duration;
+    }
+  });
+});
   
 }
 
+// ✅ Heute
+let todayHtml = "<strong>Heute:</strong><br>";
+let todaySum = 0;
+
+for (let name in todayTotals) {
+  todayHtml += `${name}: ${format(todayTotals[name])}<br>`;
+  todaySum += todayTotals[name];
+}
+
+todayHtml += `<strong>Gesamt: ${format(todaySum)}</strong>`;
+
+reportTodayEl.innerHTML = todayHtml;
+
+// ✅ Woche
+let weekHtml = "<strong>Diese Woche:</strong><br>";
+let weekSum = 0;
+
+for (let name in weekTotals) {
+  weekHtml += `${name}: ${format(weekTotals[name])}<br>`;
+  weekSum += weekTotals[name];
+}
+
+weekHtml += `<strong>Gesamt: ${format(weekSum)}</strong>`;
+
+reportWeekEl.innerHTML = weekHtml;
+
+  
 // ✅ Start
 setInterval(render, 1000);
 render();
