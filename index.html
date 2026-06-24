@@ -779,7 +779,11 @@ link.download = `zeiterfassung_${namePart}_${filter}_${date}.csv`;
 
   link.click();
 }
-  
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+
 </script>
 
 </body>
