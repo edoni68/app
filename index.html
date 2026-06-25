@@ -999,8 +999,10 @@ function renderProjectChart() {
     let total = 0;
 
     p.sessions.forEach(s => {
-      total += s.end - s.start;
-    });
+  if (isThisWeek(s.start)) {
+    total += s.end - s.start;
+  }
+});
 
     if (total > 0) {
       // Stunden umrechnen
@@ -1022,7 +1024,7 @@ function renderProjectChart() {
   }
 
   projectChartInstance = new Chart(ctx, {
-    type: "bar",
+    type: "doughnut",
     data: {
       labels: labels,
       datasets: [{
