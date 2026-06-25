@@ -224,6 +224,7 @@ button:active {
 <script>
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
 let selectedExportProject = localStorage.getItem("selectedExportProject") || "all";
+let lastWorkDate = localStorage.getItem("lastWorkDate") || null;
 
 let projects;
 try {
@@ -369,6 +370,21 @@ function stopTimer(i) {
 
 // ✅ Arbeitsmodus
 function startWork() {
+
+  
+  let today = new Date().toDateString();
+
+  // ✅ neuer Tag → reset
+  if (lastWorkDate !== today) {
+    work.total = 0;
+    work.start = null;
+    work.running = false;
+    work.paused = false;
+
+    lastWorkDate = today;
+    localStorage.setItem("lastWorkDate", today);
+  }
+
   if (work.running) return;
 
   work.running = true;
