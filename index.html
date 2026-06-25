@@ -916,8 +916,8 @@ function renderChart() {
   let labels = [];
   let data = [];
 
-  // letzten 7 Tage anzeigen
-  let days = 7;
+  // letzten 30 Tage anzeigen
+  let days = 30;
 
   for (let i = days - 1; i >= 0; i--) {
     let d = new Date();
@@ -950,7 +950,7 @@ function renderChart() {
       datasets: [{
         label: "Arbeitszeit (h)",
         data: data,
-        backgroundColor: "#0a84ff",
+        backgroundColor: data.map(v => v > 6 ? "#34c759" : "#0a84ff"),
         borderRadius: 8
       }]
     },
@@ -959,6 +959,13 @@ function renderChart() {
       plugins: {
         legend: {
           display: false
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.raw + " Stunden"
+          }
         }
       },
       scales: {
