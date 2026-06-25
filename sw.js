@@ -1,4 +1,4 @@
-const CACHE_NAME = "zeit-v9";
+const CACHE_NAME = "zeit-v10";
 
 const urlsToCache = [
   "./",
