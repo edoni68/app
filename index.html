@@ -228,6 +228,7 @@ button:active {
 </div>
 
 <script>
+let lastChartUpdate = 0;
 let chartInstance = null;
 let projectChartInstance = null;
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
@@ -1080,7 +1081,7 @@ function renderProjectChart() {
   });
 }
 
-let lastChartUpdate = 0;
+
 
 function safeCharts() {
   let now = Date.now();
