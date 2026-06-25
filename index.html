@@ -352,6 +352,12 @@ function startTimer(i) {
   // ✅ Projekt automatisch auswählen
   activeProject = i;
 
+  // ✅ WICHTIG: Arbeitsmodus starten, wenn nicht aktiv
+  if (!work.running) {
+    startWork();
+    return;
+  }
+
   // wenn dieses Projekt schon läuft → nichts tun
   if (p.running) {
     save();
@@ -658,6 +664,12 @@ function render() {
 // prüfen ob wirklich ein Projekt läuft
 let projectRunning = projects.some(p => p.running);
 
+if (projectRunning) {
+  let active = projects.find(p => p.running);
+
+  workTime = getTotal(active);
+}
+  
 if (work.running && projectRunning) {
   status = "🟢 läuft";
   stateClass = "dashboard-running";
