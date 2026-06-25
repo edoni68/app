@@ -225,8 +225,20 @@ button:active {
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
 let selectedExportProject = localStorage.getItem("selectedExportProject") || "all";
 let lastWorkDate = localStorage.getItem("lastWorkDate") || null;
-
 let projects;
+
+let today = new Date().toDateString();
+
+if (lastWorkDate !== today) {
+  work.total = 0;
+  work.running = false;
+  work.paused = false;
+  work.start = null;
+
+  lastWorkDate = today;
+  localStorage.setItem("lastWorkDate", today);
+}
+
 try {
   projects = JSON.parse(localStorage.getItem("projects")) || [];
 } catch (e) {
