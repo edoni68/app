@@ -398,6 +398,7 @@ function stopTimer(i) {
   p.startTime = null;
 
   save();
+  updateCharts(); // ✅ HIER
 }
 
 // ✅ Arbeitsmodus
@@ -439,6 +440,7 @@ function pauseWork() {
   }
 
   save();
+  updateCharts(); // ✅ HIER
 }
 
 function stopWork() {
@@ -457,6 +459,7 @@ function stopWork() {
   work.start = null;
 
   save();
+  updateCharts(); // ✅ HIER
 }
 
 
@@ -829,19 +832,14 @@ if (diffMonth > 1000) {
 
 reportMonthEl.innerHTML = monthHtml;
 
-try {
-safeCharts();
-} catch (e) {
-  console.error("Chart Fehler:", e);
-}
 
-  
 } // render end
 
   
 // ✅ Start
 setInterval(render, 500);
 render();
+updateCharts();
 
 function exportCSV(filter) {
 
@@ -1089,6 +1087,15 @@ function safeCharts() {
     renderChart();
     renderProjectChart();
     lastChartUpdate = now;
+  }
+}
+
+function updateCharts() {
+  try {
+    renderChart();
+    renderProjectChart();
+  } catch (e) {
+    console.error("Chart Fehler:", e);
   }
 }
   
