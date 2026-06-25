@@ -17,6 +17,7 @@
 <link rel="apple-touch-startup-image" href="icon-192.png?v=2">
 <link rel="apple-touch-startup-image" href="icon-512.png?v=2">
   
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body {
   font-family: -apple-system, BlinkMacSystemFont;
@@ -205,10 +206,13 @@ button:active {
 <div id="reportToday"></div>
 <div id="reportWeek" style="margin-top:10px;"></div>
 <div id="reportMonth" style="margin-top:10px;"></div>
+<h2>📊 Diagramm</h2>
+<canvas id="workChart" style="margin-top:10px;"></canvas>
 
 <div style="font-size:13px; margin-top:10px; color:gray;">
   Export Projekt
 </div>
+  
 <div class="export-row" style="margin-top:10px;">
   <button onclick="exportCSV('today')" class="big-btn">📤 Heute</button>
   <button onclick="exportCSV('week')" class="big-btn">📤 Woche</button>
@@ -807,8 +811,10 @@ if (diffMonth > 1000) {
 }
 
 reportMonthEl.innerHTML = monthHtml;
+
+renderChart();
   
-}
+} // render end
 
   
 // ✅ Start
@@ -901,6 +907,72 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 
+let chartInstance = null;
+
+function renderChart() {
+
+  let ctx = document.getElementById("workChart").getContext("2d");
+
+  let labels = [];
+  let data = [];
+
+  // letzten 7 Tage anzeigen
+  let days = 7;
+
+  for (let i = days - 1; i >= 0; i--) {
+    let d = new Date();
+    d.setDate(d.getDate() - i);
+
+    let key = d.toISOString().split("T")[0];
+
+    let label = d.toLocaleDateString("de-DE", {
+      weekday: "short"
+    });
+
+    let value = workHistory[key] ? workHistory[key].total : 0;
+
+    // Stunden statt ms
+    value = Math.round(value / 3600000 * 10) / 10;
+
+    labels.push(label);
+    data.push(value);
+  }
+
+  // altes Chart zerstören
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Arbeitszeit (h)",
+        data: data,
+        backgroundColor: "#0a84ff",
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: value => value + "h"
+          }
+        }
+      }
+    }
+  });
+}
+  
 </script>
 
 </body>
