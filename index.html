@@ -232,7 +232,22 @@ try {
 } catch (e) {
   workHistory = {};
 }
-  
+let work;
+try {
+  work = JSON.parse(localStorage.getItem("work")) || {
+    running: false,
+    paused: false,
+    start: null,
+    total: 0
+  };
+} catch (e) {
+  work = {
+    running: false,
+    paused: false,
+    start: null,
+    total: 0
+  };
+}  
 let today = new Date().toDateString();
 
 if (lastWorkDate !== today) {
@@ -250,24 +265,7 @@ try {
 } catch (e) {
   projects = [];
 }
-  
-let work;
-try {
-  work = JSON.parse(localStorage.getItem("work")) || {
-    running: false,
-    paused: false,
-    start: null,
-    total: 0
-  };
-} catch (e) {
-  work = {
-    running: false,
-    paused: false,
-    start: null,
-    total: 0
-  };
-}
-  
+    
 function save() {
   localStorage.setItem("projects", JSON.stringify(projects));
   localStorage.setItem("work", JSON.stringify(work));
@@ -779,13 +777,7 @@ projects.forEach(p => {
   });
 });
 
-// Arbeitszeit Monat
-let workMonth = work.total;
-if (work.running && work.start) {
-  workMonth += Date.now() - work.start;
-}
-
-// HTML
+// ✅ Arbeitszeit Monat (aus History!)
 let workMonth = 0;
 
 for (let date in workHistory) {
@@ -797,7 +789,14 @@ for (let date in workHistory) {
 if (work.running && work.start && isThisMonth(new Date())) {
   workMonth += Date.now() - work.start;
 }
-  
+
+// HTML bauen
+let monthHtml = "<strong>Diesen Monat:</strong><br>";
+
+for (let name in monthTotals) {
+  monthHtml += `${name}: ${format(monthTotals[name])}<br>`;
+}
+
 monthHtml += `<hr>`;
 monthHtml += `🧾 Projekte: ${format(monthSum)}<br>`;
 monthHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workMonth)}</strong>`;
