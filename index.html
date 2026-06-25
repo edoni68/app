@@ -839,7 +839,10 @@ reportMonthEl.innerHTML = monthHtml;
 // ✅ Start
 setInterval(render, 500);
 render();
-updateCharts();
+if (Date.now() - work.start > 10000) {
+  updateCharts();
+}
+
 
 function exportCSV(filter) {
 
