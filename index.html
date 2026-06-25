@@ -226,7 +226,13 @@ let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
 let selectedExportProject = localStorage.getItem("selectedExportProject") || "all";
 let lastWorkDate = localStorage.getItem("lastWorkDate") || null;
 let projects;
-
+let workHistory;
+try {
+  workHistory = JSON.parse(localStorage.getItem("workHistory")) || {};
+} catch (e) {
+  workHistory = {};
+}
+  
 let today = new Date().toDateString();
 
 if (lastWorkDate !== today) {
@@ -265,6 +271,7 @@ try {
 function save() {
   localStorage.setItem("projects", JSON.stringify(projects));
   localStorage.setItem("work", JSON.stringify(work));
+  localStorage.setItem("workHistory", JSON.stringify(workHistory));
   localStorage.setItem("activeProject", JSON.stringify(activeProject));
   render();
 }
@@ -383,21 +390,14 @@ function stopTimer(i) {
 // ✅ Arbeitsmodus
 function startWork() {
 
-  
-  let today = new Date().toDateString();
-
-  // ✅ neuer Tag → reset
-  if (lastWorkDate !== today) {
-    work.total = 0;
-    work.start = null;
-    work.running = false;
-    work.paused = false;
-
-    lastWorkDate = today;
-    localStorage.setItem("lastWorkDate", today);
-  }
-
   if (work.running) return;
+
+  let today = getTodayKey();
+
+  // Eintrag anlegen wenn nicht vorhanden
+  if (!workHistory[today]) {
+    workHistory[today] = { total: 0 };
+  }
 
   work.running = true;
   work.paused = false;
@@ -414,23 +414,28 @@ function startWork() {
 function pauseWork() {
   if (!work.running) return;
 
-  work.total += Date.now() - work.start;
+  let today = getTodayKey();
+
+  workHistory[today].total += Date.now() - work.start;
+
   work.running = false;
   work.paused = true;
 
   if (activeProject !== null) {
     stopTimer(activeProject);
   }
- 
+
   save();
 }
 
 function stopWork() {
+  let today = getTodayKey();
+
   if (work.running) {
-    work.total += Date.now() - work.start;
+    workHistory[today].total += Date.now() - work.start;
   }
 
- if (activeProject !== null) {
+  if (activeProject !== null) {
     stopTimer(activeProject);
   }
 
@@ -440,6 +445,7 @@ function stopWork() {
 
   save();
 }
+
 
 // ✅ Helpers
 
@@ -497,6 +503,10 @@ function isThisMonth(ts) {
 
   return d.getMonth() === now.getMonth() &&
          d.getFullYear() === now.getFullYear();
+}
+
+function getTodayKey() {
+  return new Date().toISOString().split("T")[0];
 }
   
 // Projekt abwählen
@@ -701,7 +711,8 @@ for (let name in todayTotals) {
 }
 
 // ✅ Arbeitszeit korrekt berechnen
-let workToday = work.total;
+let todayKey = getTodayKey();
+let workToday = workHistory[todayKey] ? workHistory[todayKey].total : 0;
 
 if (work.running && work.start) {
   workToday += Date.now() - work.start;
@@ -732,10 +743,15 @@ for (let name in weekTotals) {
 }
 
 // ✅ WICHTIG: Arbeitszeit korrekt berechnen
-let workWeek = work.total;
+let workWeek = 0;
 
-// laufende Zeit
-if (work.running && work.start) {
+for (let date in workHistory) {
+  if (isThisWeek(new Date(date))) {
+    workWeek += workHistory[date].total;
+  }
+}
+
+if (work.running && work.start && isThisWeek(new Date())) {
   workWeek += Date.now() - work.start;
 }
 
@@ -770,12 +786,18 @@ if (work.running && work.start) {
 }
 
 // HTML
-let monthHtml = "<strong>Diesen Monat:</strong><br>";
+let workMonth = 0;
 
-for (let name in monthTotals) {
-  monthHtml += `${name}: ${format(monthTotals[name])}<br>`;
+for (let date in workHistory) {
+  if (isThisMonth(new Date(date))) {
+    workMonth += workHistory[date].total;
+  }
 }
 
+if (work.running && work.start && isThisMonth(new Date())) {
+  workMonth += Date.now() - work.start;
+}
+  
 monthHtml += `<hr>`;
 monthHtml += `🧾 Projekte: ${format(monthSum)}<br>`;
 monthHtml += `<strong>🧑‍💻 Gesamt Arbeitszeit: ${format(workMonth)}</strong>`;
