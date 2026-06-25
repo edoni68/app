@@ -816,14 +816,11 @@ if (diffMonth > 1000) {
 
 reportMonthEl.innerHTML = monthHtml;
 
-if (document.getElementById("workChart")) {
-  renderChart();
+try {
+safeCharts();
+} catch (e) {
+  console.error("Chart Fehler:", e);
 }
-
-if (document.getElementById("projectChart")) {
-  renderProjectChart();
-}
-
 
   
 } // render end
@@ -920,8 +917,6 @@ if ("serviceWorker" in navigator) {
 }
 
 // Chart  
-let chartInstance = null;
-
 function renderChart() {
 console.log("Chart wird gebaut");
   let ctx = document.getElementById("workChart").getContext("2d");
@@ -970,17 +965,15 @@ console.log("Chart wird gebaut");
     options: {
       responsive: true,
       plugins: {
-        legend: {
-          display: false
-        }
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label: ctx => ctx.raw + " Stunden"
-          }
-        }
-      },
+  legend: {
+    display: false
+  },
+    tooltip: {
+      callbacks: {
+        label: ctx => ctx.raw + " Stunden"
+      }
+    }
+  },
       scales: {
         y: {
           beginAtZero: true,
@@ -994,8 +987,6 @@ console.log("Chart wird gebaut");
 }
 
 // Projekt Chart
-let projectChartInstance = null;
-
 function renderProjectChart() {
 
   let ctx = document.getElementById("projectChart").getContext("2d");
