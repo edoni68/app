@@ -228,6 +228,8 @@ button:active {
 </div>
 
 <script>
+let chartInstance = null;
+let projectChartInstance = null;
 let activeProject = JSON.parse(localStorage.getItem("activeProject")) || null;
 let selectedExportProject = localStorage.getItem("selectedExportProject") || "all";
 let lastWorkDate = localStorage.getItem("lastWorkDate") || null;
@@ -814,8 +816,14 @@ if (diffMonth > 1000) {
 
 reportMonthEl.innerHTML = monthHtml;
 
-renderChart();
-renderProjectChart();
+if (document.getElementById("workChart")) {
+  renderChart();
+}
+
+if (document.getElementById("projectChart")) {
+  renderProjectChart();
+}
+
 
   
 } // render end
@@ -1069,6 +1077,16 @@ function renderProjectChart() {
   });
 }
 
+let lastChartUpdate = 0;
+
+function safeCharts() {
+  let now = Date.now();
+  if (now - lastChartUpdate > 2000) {
+    renderChart();
+    renderProjectChart();
+    lastChartUpdate = now;
+  }
+}
   
 </script>
 
